@@ -3,6 +3,7 @@ let htmlEditor, cssEditor, jsEditor;
 let previewWindow = null;
 
 document.addEventListener('DOMContentLoaded', () => {
+    // HTML Editor - Variables呼び出しタグのエラーハイライト対策
     htmlEditor = CodeMirror.fromTextArea(document.getElementById('html-editor'), {
         mode: 'htmlmixed',
         theme: 'monokai',
@@ -18,6 +19,10 @@ document.addEventListener('DOMContentLoaded', () => {
             'Ctrl-Space': 'autocomplete',
             'Tab': 'indentMore',
             'Shift-Tab': 'indentLess'
+        },
+        // Variables呼び出しタグをカスタムタグとして認識させる
+        htmlMode: {
+            customTags: ['var-html', /^_[\w]+_$/, /^__[\w]+__$/]
         }
     });
 
