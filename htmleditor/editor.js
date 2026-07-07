@@ -1,11 +1,11 @@
-// Markup Editor IDE - editor.js（最終版）
+// Markup Editor IDE - editor.js（専用モード対応最終版）
 let htmlEditor, cssEditor, jsEditor;
 let previewWindow = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-    // HTML Editor - Variables呼び出しタグのエラーハイライト対策
+    // HTML Editor - 専用モード使用
     htmlEditor = CodeMirror.fromTextArea(document.getElementById('html-editor'), {
-        mode: 'htmlmixed',
+        mode: 'html-variables',
         theme: 'monokai',
         lineNumbers: true,
         lineWrapping: true,
@@ -19,10 +19,6 @@ document.addEventListener('DOMContentLoaded', () => {
             'Ctrl-Space': 'autocomplete',
             'Tab': 'indentMore',
             'Shift-Tab': 'indentLess'
-        },
-        // Variables呼び出しタグをカスタムタグとして認識させる
-        htmlMode: {
-            customTags: ['var-html', /^_[\w]+_$/, /^__[\w]+__$/]
         }
     });
 
@@ -94,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
     jsEditor.on('change', saveToLocal);
 });
 
-// Variables
+// ====================== HTML Variables ======================
 function extractVariablesDefinitions(html) {
     const definitions = {};
     const regex = /<__(\w+)__(.*?)>([\s\S]*?)<\/__\1__>/g;
@@ -110,7 +106,8 @@ function extractVariablesDefinitions(html) {
 
 function expandVariables(html, definitions) {
     return html.replace(/<_(\w+)_([^>]*?)><\/_>/g, (match, name, argsStr) => {
-        if (!definitions[name]) return `[Error: ${name} not defined]`;
+        if (!definitions[name]) return `<div style="color:#ff6666">[Error: ${name} not defined]</div>`;
+
         const args = [];
         const argRegex = /"([^"]*)"|'([^']*)'|(\S+)/g;
         let m;
@@ -118,21 +115,24 @@ function expandVariables(html, definitions) {
             const val = m[1] || m[2] || m[3];
             if (val) args.push(val);
         }
+
         let content = definitions[name].content;
         const params = definitions[name].params;
         params.forEach((param, index) => {
             const value = args[index] !== undefined ? args[index] : '';
             content = content.replace(new RegExp(`\\[${param}\\]`, 'g'), value);
         });
+
         return `<var-html data-vh-id="${name}">${content}</var-html>`;
     });
 }
 
-// Upload
+// ====================== アップロード ======================
 function handleFileUpload(editor, type) {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = type === 'html' ? '.html,.htm' : type === 'css' ? '.css' : '.js';
+    
     input.onchange = e => {
         const file = e.target.files[0];
         if (!file) return;
@@ -140,11 +140,12 @@ function handleFileUpload(editor, type) {
         reader.onload = ev => {
             const newContent = ev.target.result;
             const current = editor.getValue().trim();
-            if (current === '' || confirm('上書きしますか？')) {
+            if (current === '' || confirm(`現在の内容を上書きしますか？`)) {
                 editor.setValue(newContent);
             } else {
                 editor.setValue(current + '\n\n' + newContent);
             }
+            document.getElementById('status').textContent = `${type.toUpperCase()} 読み込み完了`;
         };
         reader.readAsText(file);
     };
@@ -152,9 +153,10 @@ function handleFileUpload(editor, type) {
 }
 
 function uploadProject() {
-    alert('Project全体アップロードは準備中です。');
+    alert('📂 Project全体アップロードは準備中です。');
 }
 
+// ====================== プレビュー & ダウンロード ======================
 function openPreview() {
     let html = htmlEditor.getValue();
     const css = cssEditor.getValue();
@@ -192,7 +194,7 @@ function downloadProjectWithVariables() {
     let expandedHtml = expandVariables(html, definitions);
 
     expandedHtml = expandedHtml.replace(/<__(\w+)__[\s\S]*?<\/__\1__>/g, (match) => {
-        return `<!-- HTML Variable Definition (Removed) -->\n<!-- ${match.replace(/</g, '&lt;').replace(/>/g, '&gt;')} -->\n`;
+        return `<!-- HTML Variable Definition (Removed on export) -->\n<!-- ${match.replace(/</g, '&lt;').replace(/>/g, '&gt;')} -->\n`;
     });
 
     const fullHTML = `<!DOCTYPE html>
@@ -220,5 +222,7 @@ function downloadProjectWithVariables() {
 }
 
 function resetEditors() {
-    if (confirm('すべてリセットしますか？')) location.reload();
+    if (confirm('すべてリセットしますか？')) {
+        location.reload();
+    }
 }
