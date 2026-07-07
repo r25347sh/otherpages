@@ -109,13 +109,18 @@ function extractVariablesDefinitions(html) {
 
 function expandVariables(html, definitions) {
     return html.replace(/<_(\w+)_([^>]*?)><\/_>/g, (match, name, argsStr) => {
-        if (!definitions[name]) return `<div style="color:red;">[Variables Error: ${name} not defined]</div>`;
+        if (!definitions[name]) {
+            return `<div style="color:red; padding:20px; border:2px solid red;">[Variables Error: ${name} is not defined]</div>`;
+        }
 
-        const args = argsStr.trim().split(/\s+/).map(arg => {
-            arg = arg.trim();
-            return (arg.startsWith('"') && arg.endsWith('"')) || (arg.startsWith("'") && arg.endsWith("'")) 
-                ? arg.slice(1, -1) : arg;
-        });
+        // 改善された引数解析（引用符・スペース対応）
+        const args = [];
+        const argRegex = /"([^"]*)"|'([^']*)'|(\S+)/g;
+        let m;
+        while ((m = argRegex.exec(argsStr)) !== null) {
+            const val = m[1] || m[2] || m[3];
+            if (val) args.push(val);
+        }
 
         let content = definitions[name].content;
         const params = definitions[name].params;
@@ -128,7 +133,6 @@ function expandVariables(html, definitions) {
         return `<var-html data-vh-id="${name}">${content}</var-html>`;
     });
 }
-
 // プレビュー（Variables展開）
 function openPreview() {
     let html = htmlEditor.getValue();
