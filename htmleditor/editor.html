@@ -20,7 +20,6 @@
     </header>
     
     <div class="main-container">
-        <!-- HTML -->
         <div class="editor-panel">
             <h2>HTML 
                 <button class="small-btn" id="upload-html-btn">Upload HTML</button>
@@ -28,7 +27,6 @@
             <textarea id="html-editor"></textarea>
         </div>
         
-        <!-- CSS -->
         <div class="editor-panel">
             <h2>CSS 
                 <button class="small-btn" id="upload-css-btn">Upload CSS</button>
@@ -36,7 +34,6 @@
             <textarea id="css-editor"></textarea>
         </div>
         
-        <!-- JavaScript -->
         <div class="editor-panel">
             <h2>JavaScript 
                 <button class="small-btn" id="upload-js-btn">Upload JS</button>
@@ -49,16 +46,19 @@
         <span id="status">Ready</span>
     </div>
 
-    <!-- CodeMirror -->
+    <!-- CodeMirror Core -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+    
+    <!-- Modes -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
     
-    <!-- HTML Variables専用モード -->
+    <!-- Variables専用モード -->
     <script src="html-variables-mode.js"></script>
     
+    <!-- Main Script -->
     <script src="editor.js"></script>
 </body>
 </html>
