@@ -1,57 +1,57 @@
 <!DOCTYPE html>
 <html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Markup Editor IDE</title>
-    <link rel="stylesheet" href="editor.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/monokai.min.css">
-</head>
-<body>
-    <header>
-        <h1>完全マークアップエディター IDE</h1>
-        <div class="controls">
-            <button id="view-btn">View in New Tab</button>
-            <button id="upload-project-btn">Upload Project</button>
-            <button id="reset-btn">Reset</button>
-            <button id="download-btn">Download Project</button>
-        </div>
-    </header>
-    
-    <div class="main-container">
-        <div class="editor-panel">
-            <h2>HTML 
-                <button class="small-btn" id="upload-html-btn">Upload HTML</button>
-            </h2>
-            <textarea id="html-editor"></textarea>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Markup Editor IDE</title>
+        <link rel="stylesheet" href="editor.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/monokai.min.css">
+    </head>
+    <body>
+        <header>
+            <h1>完全マークアップエディター IDE</h1>
+            <div class="controls">
+                <button id="view-btn">View in New Tab</button>
+                <button id="upload-project-btn">Upload Project</button>
+                <button id="reset-btn">Reset</button>
+                <button id="download-btn">Download Project</button>
+            </div>
+        </header>
+        
+        <div class="main-container">
+            <div class="editor-panel">
+                <h2>HTML 
+                    <button class="small-btn" id="upload-html-btn">Upload HTML</button>
+                </h2>
+                <textarea id="html-editor"></textarea>
+            </div>
+            
+            <div class="editor-panel">
+                <h2>CSS 
+                    <button class="small-btn" id="upload-css-btn">Upload CSS</button>
+                </h2>
+                <textarea id="css-editor"></textarea>
+            </div>
+            
+            <div class="editor-panel">
+                <h2>JavaScript 
+                    <button class="small-btn" id="upload-js-btn">Upload JS</button>
+                </h2>
+                <textarea id="js-editor"></textarea>
+            </div>
         </div>
         
-        <div class="editor-panel">
-            <h2>CSS 
-                <button class="small-btn" id="upload-css-btn">Upload CSS</button>
-            </h2>
-            <textarea id="css-editor"></textarea>
+        <div class="status-bar">
+            <span id="status">Ready</span>
         </div>
-        
-        <div class="editor-panel">
-            <h2>JavaScript 
-                <button class="small-btn" id="upload-js-btn">Upload JS</button>
-            </h2>
-            <textarea id="js-editor"></textarea>
-        </div>
-    </div>
     
-    <div class="status-bar">
-        <span id="status">Ready</span>
-    </div>
-
-    <!-- CodeMirror Scripts -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
-    <script src="editor.js"></script>
-</body>
+        <!-- CodeMirror Scripts -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+        <script src="editor.js"></script>
+    </body>
 </html>
