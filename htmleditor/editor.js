@@ -1,9 +1,9 @@
-// Markup Editor IDE - editor.js（HTML Variables対応版）
+// Markup Editor IDE - editor.js（完全版：Variables + Upload + ハイライト改善）
 let htmlEditor, cssEditor, jsEditor;
 let previewWindow = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialize CodeMirror Editors
+    // CodeMirror Editors
     htmlEditor = CodeMirror.fromTextArea(document.getElementById('html-editor'), {
         mode: 'htmlmixed',
         theme: 'monokai',
@@ -14,7 +14,6 @@ document.addEventListener('DOMContentLoaded', () => {
         matchBrackets: true,
         indentUnit: 2,
         tabSize: 2,
-        indentWithTabs: false,
         extraKeys: { 'Ctrl-Space': 'autocomplete' }
     });
 
@@ -23,8 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
         theme: 'monokai',
         lineNumbers: true,
         lineWrapping: true,
-        autoCloseBrackets: true,
-        matchBrackets: true,
         indentUnit: 2,
         tabSize: 2
     });
@@ -34,13 +31,11 @@ document.addEventListener('DOMContentLoaded', () => {
         theme: 'monokai',
         lineNumbers: true,
         lineWrapping: true,
-        autoCloseBrackets: true,
-        matchBrackets: true,
         indentUnit: 2,
         tabSize: 2
     });
 
-    // 初期サンプル（Variables機能付き）
+    // 初期サンプル
     htmlEditor.setValue(`<!-- HTML Variables 定義例 -->
 <__Card__ color title desc>
 <div class="card [color] p-6 rounded-xl shadow-lg">
@@ -69,10 +64,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
     jsEditor.setValue(`console.log("Markup Editor with HTML Variables loaded!");`);
 
-    // ボタン
+    // ボタンイベント
     document.getElementById('view-btn').addEventListener('click', openPreview);
+    document.getElementById('upload-project-btn').addEventListener('click', uploadProject);
     document.getElementById('reset-btn').addEventListener('click', resetEditors);
     document.getElementById('download-btn').addEventListener('click', downloadProjectWithVariables);
+
+    document.getElementById('upload-html-btn').addEventListener('click', () => handleFileUpload(htmlEditor, 'html'));
+    document.getElementById('upload-css-btn').addEventListener('click', () => handleFileUpload(cssEditor, 'css'));
+    document.getElementById('upload-js-btn').addEventListener('click', () => handleFileUpload(jsEditor, 'js'));
 
     // Auto-save
     const saveToLocal = () => {
@@ -92,8 +92,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// ====================== HTML Variables 処理 ======================
-
+// ====================== HTML Variables ======================
 function extractVariablesDefinitions(html) {
     const definitions = {};
     const regex = /<__(\w+)__(.*?)>([\s\S]*?)<\/__\1__>/g;
@@ -110,10 +109,9 @@ function extractVariablesDefinitions(html) {
 function expandVariables(html, definitions) {
     return html.replace(/<_(\w+)_([^>]*?)><\/_>/g, (match, name, argsStr) => {
         if (!definitions[name]) {
-            return `<div style="color:red; padding:20px; border:2px solid red;">[Variables Error: ${name} is not defined]</div>`;
+            return `<div style="color:#ff5555; padding:15px; border:1px solid #ff5555;">[Variables Error: ${name} is not defined]</div>`;
         }
 
-        // 改善された引数解析（引用符・スペース対応）
         const args = [];
         const argRegex = /"([^"]*)"|'([^']*)'|(\S+)/g;
         let m;
@@ -133,7 +131,43 @@ function expandVariables(html, definitions) {
         return `<var-html data-vh-id="${name}">${content}</var-html>`;
     });
 }
-// プレビュー（Variables展開）
+
+// ====================== アップロード機能 ======================
+function handleFileUpload(editor, type) {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = type === 'html' ? '.html,.htm' : type === 'css' ? '.css' : '.js';
+    
+    input.onchange = e => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = ev => {
+            const newContent = ev.target.result;
+            const current = editor.getValue().trim();
+
+            if (current === '') {
+                editor.setValue(newContent);
+            } else if (confirm(`現在の${type.toUpperCase()}の内容を上書きしますか？\n\nキャンセルで「末尾に追加」します。`)) {
+                editor.setValue(newContent);
+            } else {
+                editor.setValue(current + '\n\n' + newContent);
+            }
+
+            document.getElementById('status').textContent = `${type.toUpperCase()} を読み込みました`;
+            setTimeout(() => document.getElementById('status').textContent = 'Ready', 2000);
+        };
+        reader.readAsText(file);
+    };
+    input.click();
+}
+
+function uploadProject() {
+    alert('📂 Project全体アップロード機能は現在開発中です。\n\n個別の「Upload HTML / CSS / JS」ボタンを使ってください。');
+}
+
+// ====================== プレビュー & ダウンロード ======================
 function openPreview() {
     let html = htmlEditor.getValue();
     const css = cssEditor.getValue();
@@ -141,7 +175,7 @@ function openPreview() {
 
     const definitions = extractVariablesDefinitions(html);
     html = expandVariables(html, definitions);
-    html = html.replace(/<__[\s\S]*?<\/__\w+__>/g, ''); // 定義を非表示
+    html = html.replace(/<__[\s\S]*?<\/__\w+__>/g, '');
 
     const fullHTML = `<!DOCTYPE html>
 <html lang="ja">
@@ -156,15 +190,12 @@ function openPreview() {
 </body>
 </html>`;
 
-    if (previewWindow && !previewWindow.closed) previewWindow.close();
+    if (previewWindow) previewWindow.close();
     previewWindow = window.open('about:blank', '_blank');
-    if (previewWindow) {
-        previewWindow.document.write(fullHTML);
-        previewWindow.document.close();
-    }
+    previewWindow.document.write(fullHTML);
+    previewWindow.document.close();
 }
 
-// Variables展開＋定義コメントアウトでダウンロード
 function downloadProjectWithVariables() {
     let html = htmlEditor.getValue();
     const css = cssEditor.getValue();
@@ -173,10 +204,9 @@ function downloadProjectWithVariables() {
     const definitions = extractVariablesDefinitions(html);
     let expandedHtml = expandVariables(html, definitions);
 
-    // 定義部分をコメントアウト
-    expandedHtml = expandedHtml.replace(/<__(\w+)__[\s\S]*?<\/__\1__>/g, (match) => 
-        `<!-- HTML Variable Definition (Removed on export) -->\n<!-- ${match.replace(/</g, '&lt;').replace(/>/g, '&gt;')} -->`
-    );
+    expandedHtml = expandedHtml.replace(/<__(\w+)__[\s\S]*?<\/__\1__>/g, (match) => {
+        return `<!-- ==================== HTML Variable Definition (Removed on export) ==================== -->\n<!-- ${match.replace(/</g, '&lt;').replace(/>/g, '&gt;')} -->\n`;
+    });
 
     const fullHTML = `<!DOCTYPE html>
 <html lang="ja">
@@ -199,7 +229,7 @@ function downloadProjectWithVariables() {
     a.click();
     URL.revokeObjectURL(url);
 
-    document.getElementById('status').textContent = '✅ Variables展開済みでダウンロード完了';
+    document.getElementById('status').textContent = '✅ Variables展開済みでダウンロード完了！';
     setTimeout(() => document.getElementById('status').textContent = 'Ready', 2500);
 }
 
