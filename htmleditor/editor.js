@@ -1,9 +1,9 @@
-// Markup Editor IDE - editor.js（完全版：Variables + Upload + ハイライト改善）
+// Markup Editor IDE - editor.js（改行インデント + ハイライト修正版）
 let htmlEditor, cssEditor, jsEditor;
 let previewWindow = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-    // CodeMirror Editors
+    // HTML Editor（ハイライト強化）
     htmlEditor = CodeMirror.fromTextArea(document.getElementById('html-editor'), {
         mode: 'htmlmixed',
         theme: 'monokai',
@@ -12,36 +12,45 @@ document.addEventListener('DOMContentLoaded', () => {
         autoCloseTags: true,
         autoCloseBrackets: true,
         matchBrackets: true,
-        indentUnit: 2,
-        tabSize: 2,
-        extraKeys: { 'Ctrl-Space': 'autocomplete' }
+        indentUnit: 4,           // インデント幅を4に
+        tabSize: 4,
+        indentWithTabs: false,
+        extraKeys: { 
+            'Ctrl-Space': 'autocomplete',
+            'Tab': 'indentMore',
+            'Shift-Tab': 'indentLess'
+        }
     });
 
+    // CSS Editor
     cssEditor = CodeMirror.fromTextArea(document.getElementById('css-editor'), {
         mode: 'css',
         theme: 'monokai',
         lineNumbers: true,
         lineWrapping: true,
-        indentUnit: 2,
-        tabSize: 2
+        indentUnit: 4,
+        tabSize: 4,
+        indentWithTabs: false
     });
 
+    // JS Editor
     jsEditor = CodeMirror.fromTextArea(document.getElementById('js-editor'), {
         mode: 'javascript',
         theme: 'monokai',
         lineNumbers: true,
         lineWrapping: true,
-        indentUnit: 2,
-        tabSize: 2
+        indentUnit: 4,
+        tabSize: 4,
+        indentWithTabs: false
     });
 
     // 初期サンプル
     htmlEditor.setValue(`<!-- HTML Variables 定義例 -->
 <__Card__ color title desc>
-<div class="card [color] p-6 rounded-xl shadow-lg">
-    <h2 class="text-2xl font-bold">[title]</h2>
-    <p class="mt-3">[desc]</p>
-</div>
+    <div class="card [color] p-6 rounded-xl shadow-lg">
+        <h2 class="text-2xl font-bold">[title]</h2>
+        <p class="mt-3">[desc]</p>
+    </div>
 </__Card__>
 
 <!-- 使用例 -->
@@ -92,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// ====================== HTML Variables ======================
+// ====================== 残りの関数（Variables, Upload, Previewなど）は変更なし ======================
 function extractVariablesDefinitions(html) {
     const definitions = {};
     const regex = /<__(\w+)__(.*?)>([\s\S]*?)<\/__\1__>/g;
@@ -132,7 +141,6 @@ function expandVariables(html, definitions) {
     });
 }
 
-// ====================== アップロード機能 ======================
 function handleFileUpload(editor, type) {
     const input = document.createElement('input');
     input.type = 'file';
@@ -154,7 +162,6 @@ function handleFileUpload(editor, type) {
             } else {
                 editor.setValue(current + '\n\n' + newContent);
             }
-
             document.getElementById('status').textContent = `${type.toUpperCase()} を読み込みました`;
             setTimeout(() => document.getElementById('status').textContent = 'Ready', 2000);
         };
@@ -164,10 +171,9 @@ function handleFileUpload(editor, type) {
 }
 
 function uploadProject() {
-    alert('📂 Project全体アップロード機能は現在開発中です。\n\n個別の「Upload HTML / CSS / JS」ボタンを使ってください。');
+    alert('📂 Project全体アップロード機能は現在開発中です。\n\n個別のアップロードボタンを使ってください。');
 }
 
-// ====================== プレビュー & ダウンロード ======================
 function openPreview() {
     let html = htmlEditor.getValue();
     const css = cssEditor.getValue();
