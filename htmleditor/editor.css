@@ -1,14 +1,9 @@
-/* Fancy Editor CSS */
-* {
-    box-sizing: border-box;
-}
-
 body {
     margin: 0;
     padding: 0;
     font-family: 'Segoe UI', system-ui, sans-serif;
-    background: linear-gradient(135deg, #1e1e2f 0%, #2a2a40 100%);
-    color: #e0e0e0;
+    background: #0a0a0f;
+    color: #00ff9d;
     height: 100vh;
     display: flex;
     flex-direction: column;
@@ -16,64 +11,39 @@ body {
 }
 
 header {
-    background: #25253a;
+    background: #111118;
     padding: 15px 25px;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 3px solid #3a3a5c;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
-    z-index: 10;
+    border-bottom: 2px solid #00cc77;
+    box-shadow: 0 0 15px rgba(0, 255, 120, 0.2);
 }
 
 h1 {
     margin: 0;
-    font-size: 1.85em;
-    font-weight: 700;
-    background: linear-gradient(90deg, #00ffcc, #ff00cc, #00ccff);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    letter-spacing: 1px;
+    font-size: 1.8em;
+    color: #00ff9d;
+    text-shadow: 0 0 10px #00ff9d;
+    letter-spacing: 2px;
 }
 
-.controls {
-    display: flex;
-    gap: 12px;
-}
-
-.controls button {
-    padding: 10px 22px;
-    border: none;
-    border-radius: 8px;
+.controls button, .small-btn {
+    padding: 10px 18px;
+    margin-left: 8px;
+    background: #1a1a22;
+    color: #00ff9d;
+    border: 1px solid #00cc77;
+    border-radius: 4px;
     cursor: pointer;
-    font-weight: 600;
-    font-size: 0.95em;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    font-weight: 500;
+    transition: all 0.2s;
 }
 
-#view-btn {
-    background: linear-gradient(45deg, #00cc99, #009966);
-    color: white;
-}
-
-#reset-btn {
-    background: #555577;
-    color: white;
-}
-
-#download-btn {
-    background: linear-gradient(45deg, #cc66ff, #aa44dd);
-    color: white;
-}
-
-.controls button:hover {
-    transform: translateY(-3px) scale(1.03);
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
-}
-
-.controls button:active {
-    transform: translateY(-1px);
+.controls button:hover, .small-btn:hover {
+    background: #00cc77;
+    color: #111;
+    box-shadow: 0 0 12px #00ff9d;
 }
 
 .main-container {
@@ -81,68 +51,43 @@ h1 {
     display: flex;
     gap: 12px;
     padding: 15px;
-    overflow: hidden;
-    background: #1a1a28;
+    background: #0a0a0f;
 }
 
 .editor-panel {
     flex: 1;
     display: flex;
     flex-direction: column;
-    background: #1e1e2e;
-    border-radius: 10px;
+    background: #111118;
+    border: 1px solid #00cc77;
+    border-radius: 6px;
     overflow: hidden;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
-    border: 1px solid #35355a;
+    box-shadow: 0 0 15px rgba(0, 204, 119, 0.15);
 }
 
 .editor-panel h2 {
     margin: 0;
-    padding: 14px 20px;
-    background: #25253a;
-    border-bottom: 1px solid #3a3a5c;
+    padding: 12px 18px;
+    background: #1a1a22;
+    border-bottom: 1px solid #00cc77;
+    color: #00ff9d;
     font-size: 1.05em;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    font-weight: 600;
-    color: #a0a0ff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .CodeMirror {
     flex: 1;
-    height: 100% !important;
     font-size: 15px;
-    line-height: 1.55;
-    font-family: 'Fira Code', 'Consolas', 'Courier New', monospace;
-    background: #1e1e2e;
+    font-family: 'Fira Code', Consolas, monospace;
+    background: #0f0f14;
 }
 
 .status-bar {
-    background: #161622;
-    padding: 10px 25px;
-    font-size: 0.9em;
-    color: #8888aa;
-    border-top: 1px solid #3a3a5c;
-    display: flex;
-    align-items: center;
-}
-
-.status-bar span {
+    background: #0a0a0f;
+    padding: 10px 20px;
+    color: #00cc77;
+    border-top: 1px solid #00cc77;
     font-family: monospace;
-}
-
-/* レスポンシブ */
-@media (max-width: 1100px) {
-    .main-container {
-        flex-direction: column;
-    }
-    .editor-panel {
-        min-height: 280px;
-    }
-}
-
-/* CodeMirror カスタマイズ */
-.CodeMirror-gutters {
-    background: #25253a;
-    border-right: 1px solid #3a3a5c;
 }
