@@ -1,4 +1,4 @@
-// Markup Editor IDE - editor.js
+// Markup Editor IDE - editor.js（HTML Variables対応版）
 let htmlEditor, cssEditor, jsEditor;
 let previewWindow = null;
 
@@ -40,63 +40,41 @@ document.addEventListener('DOMContentLoaded', () => {
         tabSize: 2
     });
 
-    // 初期サンプルコンテンツ
-    htmlEditor.setValue(`<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <title>Sample Page</title>
-</head>
-<body>
-    <h1>Hello, World!</h1>
-    <p>これはマークアップエディターのサンプルです。</p>
-    <button onclick="greet()">クリックしてね</button>
-</body>
-</html>`);
+    // 初期サンプル（Variables機能付き）
+    htmlEditor.setValue(`<!-- HTML Variables 定義例 -->
+<__Card__ color title desc>
+<div class="card [color] p-6 rounded-xl shadow-lg">
+    <h2 class="text-2xl font-bold">[title]</h2>
+    <p class="mt-3">[desc]</p>
+</div>
+</__Card__>
+
+<!-- 使用例 -->
+<_Card_ "bg-gradient-to-r from-blue-500 to-purple-600 text-white" "最強エディター" "HTML Variables機能が使えます！"></_>
+<_Card_ "bg-gray-800 text-emerald-400" "タイトル2" "2つ目のカードです"></_>`);
 
     cssEditor.setValue(`body {
-    font-family: Arial, sans-serif;
-    background: linear-gradient(135deg, #667eea, #764ba2);
-    color: white;
-    text-align: center;
-    padding: 60px;
-    margin: 0;
+    font-family: system-ui, sans-serif;
+    background: #0f0f1a;
+    color: #e0e0ff;
+    padding: 40px;
 }
 
-h1 {
-    font-size: 3em;
-    margin-bottom: 20px;
+.card {
+    transition: transform 0.3s;
 }
-
-button {
-    padding: 15px 35px;
-    font-size: 1.2em;
-    background: #ff6b6b;
-    color: white;
-    border: none;
-    border-radius: 50px;
-    cursor: pointer;
-    transition: 0.3s;
-}
-
-button:hover {
-    transform: scale(1.1);
-    background: #ff5252;
+.card:hover {
+    transform: translateY(-8px);
 }`);
 
-    jsEditor.setValue(`// Sample JavaScript
-function greet() {
-    alert('こんにちは！エディターが正常に動作しています 🎉');
-}
+    jsEditor.setValue(`console.log("Markup Editor with HTML Variables loaded!");`);
 
-console.log('Markup Editor IDE が起動しました！');`);
-
-    // ボタンイベント
+    // ボタン
     document.getElementById('view-btn').addEventListener('click', openPreview);
     document.getElementById('reset-btn').addEventListener('click', resetEditors);
-    document.getElementById('download-btn').addEventListener('click', downloadProject);
+    document.getElementById('download-btn').addEventListener('click', downloadProjectWithVariables);
 
-    // 自動保存
+    // Auto-save
     const saveToLocal = () => {
         localStorage.setItem('htmlContent', htmlEditor.getValue());
         localStorage.setItem('cssContent', cssEditor.getValue());
@@ -107,31 +85,61 @@ console.log('Markup Editor IDE が起動しました！');`);
     cssEditor.on('change', saveToLocal);
     jsEditor.on('change', saveToLocal);
 
-    // 前回の内容を復元
     if (localStorage.getItem('htmlContent')) {
         htmlEditor.setValue(localStorage.getItem('htmlContent'));
         cssEditor.setValue(localStorage.getItem('cssContent'));
         jsEditor.setValue(localStorage.getItem('jsContent'));
     }
-
-    console.log('%cMarkup Editor IDE initialized successfully!', 'color: #00ffcc; font-size: 14px;');
 });
 
-// 新しいタブでプレビュー表示
+// ====================== HTML Variables 処理 ======================
+
+function extractVariablesDefinitions(html) {
+    const definitions = {};
+    const regex = /<__(\w+)__(.*?)>([\s\S]*?)<\/__\1__>/g;
+    let match;
+    while ((match = regex.exec(html)) !== null) {
+        const name = match[1];
+        const params = match[2].trim().split(/\s+/).filter(Boolean);
+        const content = match[3];
+        definitions[name] = { params, content };
+    }
+    return definitions;
+}
+
+function expandVariables(html, definitions) {
+    return html.replace(/<_(\w+)_([^>]*?)><\/_>/g, (match, name, argsStr) => {
+        if (!definitions[name]) return `<div style="color:red;">[Variables Error: ${name} not defined]</div>`;
+
+        const args = argsStr.trim().split(/\s+/).map(arg => {
+            arg = arg.trim();
+            return (arg.startsWith('"') && arg.endsWith('"')) || (arg.startsWith("'") && arg.endsWith("'")) 
+                ? arg.slice(1, -1) : arg;
+        });
+
+        let content = definitions[name].content;
+        const params = definitions[name].params;
+
+        params.forEach((param, index) => {
+            const value = args[index] !== undefined ? args[index] : '';
+            content = content.replace(new RegExp(`\\[${param}\\]`, 'g'), value);
+        });
+
+        return `<var-html data-vh-id="${name}">${content}</var-html>`;
+    });
+}
+
+// プレビュー（Variables展開）
 function openPreview() {
-    const html = htmlEditor.getValue();
+    let html = htmlEditor.getValue();
     const css = cssEditor.getValue();
     const js = jsEditor.getValue();
 
-    if (previewWindow && !previewWindow.closed) {
-        previewWindow.close();
-    }
+    const definitions = extractVariablesDefinitions(html);
+    html = expandVariables(html, definitions);
+    html = html.replace(/<__[\s\S]*?<\/__\w+__>/g, ''); // 定義を非表示
 
-    previewWindow = window.open('about:blank', '_blank');
-    
-    if (previewWindow) {
-        const fullHTML = `
-<!DOCTYPE html>
+    const fullHTML = `<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -144,41 +152,29 @@ function openPreview() {
 </body>
 </html>`;
 
+    if (previewWindow && !previewWindow.closed) previewWindow.close();
+    previewWindow = window.open('about:blank', '_blank');
+    if (previewWindow) {
         previewWindow.document.write(fullHTML);
         previewWindow.document.close();
-        
-        document.getElementById('status').textContent = '✅ 新しいタブでプレビューを開きました';
-        setTimeout(() => {
-            document.getElementById('status').textContent = 'Ready';
-        }, 2500);
-    } else {
-        alert('ポップアップがブロックされました。ブラウザの設定でポップアップを許可してください。');
     }
 }
 
-// リセット
-function resetEditors() {
-    if (confirm('すべての内容をリセットしますか？')) {
-        htmlEditor.setValue(`<!DOCTYPE html>\n<html lang="ja">\n<head>\n    <meta charset="UTF-8">\n    <title>Sample</title>\n</head>\n<body>\n    <h1>Hello</h1>\n</body>\n</html>`);
-        cssEditor.setValue(`body { background: #111; color: white; text-align: center; padding: 50px; }`);
-        jsEditor.setValue(`console.log('Reset complete!');`);
-        
-        localStorage.removeItem('htmlContent');
-        localStorage.removeItem('cssContent');
-        localStorage.removeItem('jsContent');
-        
-        document.getElementById('status').textContent = 'リセットしました';
-        setTimeout(() => document.getElementById('status').textContent = 'Ready', 2000);
-    }
-}
-
-// プロジェクトダウンロード
-function downloadProject() {
-    const html = htmlEditor.getValue();
+// Variables展開＋定義コメントアウトでダウンロード
+function downloadProjectWithVariables() {
+    let html = htmlEditor.getValue();
     const css = cssEditor.getValue();
     const js = jsEditor.getValue();
-    
-    const combinedHTML = `<!DOCTYPE html>
+
+    const definitions = extractVariablesDefinitions(html);
+    let expandedHtml = expandVariables(html, definitions);
+
+    // 定義部分をコメントアウト
+    expandedHtml = expandedHtml.replace(/<__(\w+)__[\s\S]*?<\/__\1__>/g, (match) => 
+        `<!-- HTML Variable Definition (Removed on export) -->\n<!-- ${match.replace(/</g, '&lt;').replace(/>/g, '&gt;')} -->`
+    );
+
+    const fullHTML = `<!DOCTYPE html>
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
@@ -186,21 +182,25 @@ function downloadProject() {
     <style>${css}</style>
 </head>
 <body>
-    ${html}
+    ${expandedHtml}
     <script>${js}<\/script>
 </body>
 </html>`;
-    
-    const blob = new Blob([combinedHTML], { type: 'text/html' });
+
+    const blob = new Blob([fullHTML], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
     a.download = 'my-project.html';
-    document.body.appendChild(a);
     a.click();
-    document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    
-    document.getElementById('status').textContent = '📥 プロジェクトをダウンロードしました！';
+
+    document.getElementById('status').textContent = '✅ Variables展開済みでダウンロード完了';
     setTimeout(() => document.getElementById('status').textContent = 'Ready', 2500);
+}
+
+function resetEditors() {
+    if (confirm('すべてリセットしますか？')) {
+        location.reload();
+    }
 }
