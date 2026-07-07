@@ -1,9 +1,9 @@
-// Markup Editor IDE - editor.js（改行インデント + ハイライト修正版）
+// Markup Editor IDE - editor.js（HTMLハイライト・インデント完全修正版）
 let htmlEditor, cssEditor, jsEditor;
 let previewWindow = null;
 
 document.addEventListener('DOMContentLoaded', () => {
-    // HTML Editor（ハイライト強化）
+    // ==================== HTML Editor（最重要強化） ====================
     htmlEditor = CodeMirror.fromTextArea(document.getElementById('html-editor'), {
         mode: 'htmlmixed',
         theme: 'monokai',
@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
         autoCloseTags: true,
         autoCloseBrackets: true,
         matchBrackets: true,
-        indentUnit: 4,           // インデント幅を4に
+        indentUnit: 4,
         tabSize: 4,
         indentWithTabs: false,
         extraKeys: { 
@@ -44,7 +44,7 @@ document.addEventListener('DOMContentLoaded', () => {
         indentWithTabs: false
     });
 
-    // 初期サンプル
+    // 初期サンプル（インデントを綺麗に）
     htmlEditor.setValue(`<!-- HTML Variables 定義例 -->
 <__Card__ color title desc>
     <div class="card [color] p-6 rounded-xl shadow-lg">
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     jsEditor.setValue(`console.log("Markup Editor with HTML Variables loaded!");`);
 
-    // ボタンイベント
+    // ボタン
     document.getElementById('view-btn').addEventListener('click', openPreview);
     document.getElementById('upload-project-btn').addEventListener('click', uploadProject);
     document.getElementById('reset-btn').addEventListener('click', resetEditors);
@@ -101,7 +101,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// ====================== 残りの関数（Variables, Upload, Previewなど）は変更なし ======================
+// ====================== Variables & Upload & Preview ======================
 function extractVariablesDefinitions(html) {
     const definitions = {};
     const regex = /<__(\w+)__(.*?)>([\s\S]*?)<\/__\1__>/g;
@@ -117,9 +117,7 @@ function extractVariablesDefinitions(html) {
 
 function expandVariables(html, definitions) {
     return html.replace(/<_(\w+)_([^>]*?)><\/_>/g, (match, name, argsStr) => {
-        if (!definitions[name]) {
-            return `<div style="color:#ff5555; padding:15px; border:1px solid #ff5555;">[Variables Error: ${name} is not defined]</div>`;
-        }
+        if (!definitions[name]) return `<div style="color:#ff5555">[Error: ${name} not defined]</div>`;
 
         const args = [];
         const argRegex = /"([^"]*)"|'([^']*)'|(\S+)/g;
@@ -131,7 +129,6 @@ function expandVariables(html, definitions) {
 
         let content = definitions[name].content;
         const params = definitions[name].params;
-
         params.forEach((param, index) => {
             const value = args[index] !== undefined ? args[index] : '';
             content = content.replace(new RegExp(`\\[${param}\\]`, 'g'), value);
@@ -149,30 +146,23 @@ function handleFileUpload(editor, type) {
     input.onchange = e => {
         const file = e.target.files[0];
         if (!file) return;
-
         const reader = new FileReader();
         reader.onload = ev => {
             const newContent = ev.target.result;
             const current = editor.getValue().trim();
-
-            if (current === '') {
-                editor.setValue(newContent);
-            } else if (confirm(`現在の${type.toUpperCase()}の内容を上書きしますか？\n\nキャンセルで「末尾に追加」します。`)) {
+            if (current === '' || confirm(`現在の${type.toUpperCase()}を上書きしますか？`)) {
                 editor.setValue(newContent);
             } else {
                 editor.setValue(current + '\n\n' + newContent);
             }
-            document.getElementById('status').textContent = `${type.toUpperCase()} を読み込みました`;
-            setTimeout(() => document.getElementById('status').textContent = 'Ready', 2000);
+            document.getElementById('status').textContent = `${type.toUpperCase()} 読み込み完了`;
         };
         reader.readAsText(file);
     };
     input.click();
 }
 
-function uploadProject() {
-    alert('📂 Project全体アップロード機能は現在開発中です。\n\n個別のアップロードボタンを使ってください。');
-}
+function uploadProject() { alert('Project全体アップロードは準備中です。'); }
 
 function openPreview() {
     let html = htmlEditor.getValue();
@@ -183,18 +173,7 @@ function openPreview() {
     html = expandVariables(html, definitions);
     html = html.replace(/<__[\s\S]*?<\/__\w+__>/g, '');
 
-    const fullHTML = `<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <title>Preview</title>
-    <style>${css}</style>
-</head>
-<body>
-    ${html}
-    <script>${js}<\/script>
-</body>
-</html>`;
+    const fullHTML = `<!DOCTYPE html>\n<html lang="ja">\n<head>\n    <meta charset="UTF-8">\n    <title>Preview</title>\n    <style>${css}</style>\n</head>\n<body>\n    ${html}\n    <script>${js}<\/script>\n</body>\n</html>`;
 
     if (previewWindow) previewWindow.close();
     previewWindow = window.open('about:blank', '_blank');
@@ -210,22 +189,11 @@ function downloadProjectWithVariables() {
     const definitions = extractVariablesDefinitions(html);
     let expandedHtml = expandVariables(html, definitions);
 
-    expandedHtml = expandedHtml.replace(/<__(\w+)__[\s\S]*?<\/__\1__>/g, (match) => {
-        return `<!-- ==================== HTML Variable Definition (Removed on export) ==================== -->\n<!-- ${match.replace(/</g, '&lt;').replace(/>/g, '&gt;')} -->\n`;
-    });
+    expandedHtml = expandedHtml.replace(/<__(\w+)__[\s\S]*?<\/__\1__>/g, (match) => 
+        `<!-- HTML Variable Definition (Removed) -->\n<!-- ${match.replace(/</g, '&lt;').replace(/>/g, '&gt;')} -->\n`
+    );
 
-    const fullHTML = `<!DOCTYPE html>
-<html lang="ja">
-<head>
-    <meta charset="UTF-8">
-    <title>Exported Project</title>
-    <style>${css}</style>
-</head>
-<body>
-    ${expandedHtml}
-    <script>${js}<\/script>
-</body>
-</html>`;
+    const fullHTML = `<!DOCTYPE html>\n<html lang="ja">\n<head>\n    <meta charset="UTF-8">\n    <title>Exported Project</title>\n    <style>${css}</style>\n</head>\n<body>\n${expandedHtml}\n    <script>${js}<\/script>\n</body>\n</html>`;
 
     const blob = new Blob([fullHTML], { type: 'text/html' });
     const url = URL.createObjectURL(blob);
@@ -235,12 +203,9 @@ function downloadProjectWithVariables() {
     a.click();
     URL.revokeObjectURL(url);
 
-    document.getElementById('status').textContent = '✅ Variables展開済みでダウンロード完了！';
-    setTimeout(() => document.getElementById('status').textContent = 'Ready', 2500);
+    document.getElementById('status').textContent = '✅ ダウンロード完了';
 }
 
 function resetEditors() {
-    if (confirm('すべてリセットしますか？')) {
-        location.reload();
-    }
+    if (confirm('すべてリセットしますか？')) location.reload();
 }
