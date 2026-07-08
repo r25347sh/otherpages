@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>死にたいタイピング</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Press+Start+2P&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0a0000;
+            color: #ff3333;
+            font-family: 'Press Start 2P', sans-serif;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+        }
+
+        /* Smartphone Frame */
+        .phone {
+            width: 380px;
+            height: 720px;
+            background: #111;
+            border: 14px solid #222;
+            border-radius: 48px;
+            box-shadow: 
+                0 0 0 12px #000,
+                0 20px 60px rgba(0,0,0,0.9),
+                inset 0 0 40px rgba(255, 20, 20, 0.3);
+            position: relative;
+            overflow: hidden;
+            z-index: 10;
+        }
+
+        .phone::before {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 140px;
+            height: 28px;
+            background: #000;
+            border-radius: 20px;
+            z-index: 20;
+        }
+
+        .screen {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(#1a0000, #000000);
+            position: relative;
+            overflow: hidden;
+            border-radius: 34px;
+        }
+
+        /* Horror effects */
+        .scanline {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                transparent 50%,
+                rgba(255, 0, 0, 0.08) 50%
+            );
+            background-size: 100% 4px;
+            pointer-events: none;
+            animation: scan 4s linear infinite;
+            z-index: 5;
+            opacity: 0.6;
+        }
+
+        @keyframes scan {
+            0% { transform: translateY(-100%); }
+            100% { transform: translateY(100%); }
+        }
+
+        .vignette {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            box-shadow: inset 0 0 120px rgba(0,0,0,0.95);
+            z-index: 6;
+            pointer-events: none;
+        }
+
+        .game-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #ff0000;
+        }
+
+        .title {
+            font-family: 'Creepster', cursive;
+            font-size: 28px;
+            color: #ff4444;
+            letter-spacing: 4px;
+            animation: flicker 0.8s infinite alternate;
+        }
+
+        @keyframes flicker {
+            0% { opacity: 0.8; text-shadow: 0 0 10px #ff0000; }
+            100% { opacity: 1; text-shadow: 0 0 20px #ff0000, 0 0 30px #aa0000; }
+        }
+
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            font-size: 14px;
+            margin-bottom: 15px;
+            color: #ff8888;
+        }
+
+        .target {
+            background: rgba(40, 0, 0, 0.9);
+            border: 3px solid #990000;
+            padding: 20px;
+            margin: 15px 0;
+            text-align: center;
+            font-size: 32px;
+            letter-spacing: 8px;
+            min-height: 80px;
+            box-shadow: 0 0 20px #ff0000;
+            position: relative;
+        }
+
+        .typed {
+            font-size: 28px;
+            min-height: 120px;
+            background: #0f0000;
+            border: 2px dashed #660000;
+            padding: 15px;
+            margin: 10px 0;
+            overflow: hidden;
+            word-break: break-all;
+            color: #ffaaaa;
+        }
+
+        .correct { color: #ff6666; }
+        .wrong { color: #ff0000; animation: shake 0.3s; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        .progress {
+            height: 12px;
+            background: #330000;
+            border: 2px solid #990000;
+            margin: 15px 0;
+            position: relative;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(to right, #ff0000, #ff6666);
+            transition: width 0.2s;
+            box-shadow: 0 0 15px #ff0000;
+        }
+
+        .message {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 22px;
+            color: #ff0000;
+            text-align: center;
+            opacity: 0;
+            pointer-events: none;
+            text-shadow: 0 0 15px #ff0000;
+            z-index: 10;
+        }
+
+        .keyboard-hint {
+            text-align: center;
+            font-size: 12px;
+            color: #664444;
+            margin-top: auto;
+        }
+
+        .blood {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background: linear-gradient(transparent, rgba(150, 0, 0, 0.6));
+            opacity: 0.4;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="phone">
+        <div class="screen">
+            <div class="scanline"></div>
+            <div class="vignette"></div>
+            
+            <div class="game-container">
+                <div class="header">
+                    <div class="title">死にたい</div>
+                    <div style="font-size:12px; margin-top:5px; color:#aa4444;">SHINITAI TYPING</div>
+                </div>
+
+                <div class="stats">
+                    <div>回数: <span id="count">0</span></div>
+                    <div>時間: <span id="timer">0</span>s</div>
+                    <div>連続: <span id="streak">0</span></div>
+                </div>
+
+                <div class="target" id="target">
+                    しにたい
+                </div>
+
+                <div class="typed" id="typed"></div>
+
+                <div class="progress">
+                    <div class="progress-bar" id="progress"></div>
+                </div>
+
+                <div id="message" class="message"></div>
+
+                <div class="blood"></div>
+                
+                <div class="keyboard-hint">
+                    キーボードで「しにたい」を打ち続けろ...<br>
+                    (shinitai / sinitai OK)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const targetText = "しにたい";
+        const romajiTargets = ["shinitai", "sinitai"];
+        
+        let currentInput = "";
+        let count = 0;
+        let streak = 0;
+        let time = 0;
+        let timerInterval;
+        let gameStarted = false;
+        let lastCorrectTime = Date.now();
+
+        const typedEl = document.getElementById('typed');
+        const targetEl = document.getElementById('target');
+        const countEl = document.getElementById('count');
+        const timerEl = document.getElementById('timer');
+        const streakEl = document.getElementById('streak');
+        const progressEl = document.getElementById('progress');
+        const messageEl = document.getElementById('message');
+
+        function startTimer() {
+            if (!gameStarted) {
+                gameStarted = true;
+                timerInterval = setInterval(() => {
+                    time++;
+                    timerEl.textContent = time;
+                }, 1000);
+            }
+        }
+
+        function showMessage(text, duration = 1200) {
+            messageEl.textContent = text;
+            messageEl.style.opacity = 1;
+            setTimeout(() => {
+                messageEl.style.opacity = 0;
+            }, duration);
+        }
+
+        function checkInput() {
+            const lowerInput = currentInput.toLowerCase();
+            
+            // Check for completion
+            if (romajiTargets.some(t => lowerInput.endsWith(t))) {
+                count++;
+                streak++;
+                
+                countEl.textContent = count;
+                streakEl.textContent = streak;
+                
+                // Progress visual
+                progressEl.style.width = `${Math.min(100, streak * 8)}%`;
+                
+                // Reset input for next
+                currentInput = currentInput.slice(0, currentInput.length - (lowerInput.endsWith("shinitai") ? 8 : 7));
+                
+                typedEl.innerHTML = currentInput.split('').map(char => 
+                    `<span class="correct">${char}</span>`
+                ).join('');
+                
+                // Horror intensification
+                if (count % 5 === 0) {
+                    document.querySelector('.screen').style.background = 
+                        'linear-gradient(#2a0000, #110000)';
+                    showMessage("もっと...死にたい...", 1500);
+                }
+                
+                if (count >= 10) {
+                    document.body.style.filter = 'contrast(1.3) brightness(0.85)';
+                }
+                
+                lastCorrectTime = Date.now();
+            } 
+            // Wrong input feedback
+            else if (currentInput.length > 0) {
+                const lastChar = currentInput[currentInput.length - 1];
+                if (!targetText.includes(lastChar) && !["s","h","i","n","t","a"].includes(lastChar.toLowerCase())) {
+                    typedEl.classList.add('wrong');
+                    setTimeout(() => typedEl.classList.remove('wrong'), 300);
+                    streak = Math.max(0, streak - 1);
+                    streakEl.textContent = streak;
+                }
+            }
+            
+            // Update display
+            typedEl.innerHTML = currentInput.split('').map((char, i) => {
+                return `<span class="correct">${char}</span>`;
+            }).join('');
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === "Enter" || e.key === "Escape") return;
+            
+            startTimer();
+            
+            if (e.key === "Backspace") {
+                currentInput = currentInput.slice(0, -1);
+                typedEl.textContent = currentInput;
+                return;
+            }
+            
+            // Only accept printable characters
+            if (e.key.length === 1) {
+                currentInput += e.key;
+                checkInput();
+            }
+        });
+
+        // Random glitch effect
+        setInterval(() => {
+            if (Math.random() < 0.15 && count > 3) {
+                const screen = document.querySelector('.screen');
+                screen.style.transition = 'filter 0.1s';
+                screen.style.filter = 'invert(0.1) hue-rotate(10deg)';
+                setTimeout(() => {
+                    screen.style.filter = '';
+                }, 120);
+            }
+        }, 800);
+
+        // Initial message
+        setTimeout(() => {
+            showMessage("死にたくて たまらない...", 2000);
+        }, 800);
+
+        // Instructions
+        console.log("%c死にたいタイピング - ホラー版\nキーを押して「しにたい」を打ち続けろ...", "color:#ff4444; font-family:monospace");
+    </script>
+</body>
+</html>
